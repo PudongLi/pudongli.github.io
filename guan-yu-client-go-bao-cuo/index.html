@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>关于client-go报错 | strider</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://pudongli.github.io/favicon.ico?v=1597211753210">
+<link rel="stylesheet" href="https://pudongli.github.io/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="go get client-go时报错
+k8s.io/client-go/rest
+
+../../../../goworkspace/pkg/mod/k8s.io/client-go@v11.0.0+incompatible/rest/re..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://pudongli.github.io">
+        <img src="https://pudongli.github.io/images/avatar.png?v=1597211753210" class="site-logo">
+        <h1 class="site-title">strider</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      温故而知新
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://pudongli.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">关于client-go报错</h2>
+            <div class="post-date">2020-08-12</div>
+            
+            <div class="post-content" v-pre>
+              <h3 id="go-get-client-go时报错">go get client-go时报错</h3>
+<pre><code>k8s.io/client-go/rest
+
+../../../../goworkspace/pkg/mod/k8s.io/client-go@v11.0.0+incompatible/rest/request.go:598:31: not enough arguments in call to watch.NewStreamWatcher
+
+have (*versioned.Decoder)
+
+want (watch.Decoder, watch.Reporter)
+</code></pre>
+<h3 id="解决方法">解决方法</h3>
+<p>可以尝试手动替换k8s.io/apimachinery@v0.17.0为k8s.io/apimachinery@release-1.14来解决。在终端执行# go mod download -json k8s.io/apimachinery@release-1.14最终gomod的关于k8s的所有依赖文件如下所示：</p>
+<pre><code>1 require (
+2 　　k8s.io/api v0.17.0 // indirect
+3 　　k8s.io/apimachinery v0.17.0
+4 　　k8s.io/client-go v11.0.0+incompatible
+5 　　k8s.io/utils v0.0.0-20191114184206-e782cd3c129f // indirect
+6 　　sigs.k8s.io/yaml v1.1.0 // indirect
+7 ）
+8
+9 replace (
+10     k8s.io/api =&gt; k8s.io/api v0.0.0-20191004102349-159aefb8556b
+11     k8s.io/apiextensions-apiserver =&gt; k8s.io/apiextensions-apiserver v0.0.0-20191004105649-b14e3c49469a
+12     k8s.io/apimachinery =&gt; k8s.io/apimachinery v0.0.0-20191004074956-c5d2f014d689
+13     sigs.k8s.io/controller-runtime =&gt; sigs.k8s.io/controller-runtime v0.3.0
+14 )
+</code></pre>
+
+            </div>
+            
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '',
+        clientSecret: '',
+        repo: '',
+        owner: '',
+        admin: [''],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+  </body>
+</html>
