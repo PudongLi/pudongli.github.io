@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" >
 
-<title>关于client-go报错 | strider</title>
+<title>记录一次k8s下部署的tomcat服务报错 | strider</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
@@ -24,11 +24,10 @@
 
 
 
-    <meta name="description" content="go get client-go时报错
-k8s.io/client-go/rest
+    <meta name="description" content="在k8s集群内部署了一个tomcat服务，配置nodeport供外部访问。页面报错找不到config.js
 
-../../../../goworkspace/pkg/mod/k8s.io/client-go@v11.0.0+incompatible/rest/re..." />
-    <meta name="keywords" content="go" />
+进入tomcat容器后，在ROOT/config目录下可以找到config这个文件，权限是777。进一步ls -la发现confi..." />
+    <meta name="keywords" content="" />
   </head>
   <body>
     <div id="app" class="main">
@@ -87,47 +86,28 @@ k8s.io/client-go/rest
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">关于client-go报错</h2>
+            <h2 class="post-title">记录一次k8s下部署的tomcat服务报错</h2>
             <div class="post-date">2020-08-12</div>
             
             <div class="post-content" v-pre>
-              <h3 id="go-get-client-go时报错">go get client-go时报错</h3>
-<pre><code>k8s.io/client-go/rest
-
-../../../../goworkspace/pkg/mod/k8s.io/client-go@v11.0.0+incompatible/rest/request.go:598:31: not enough arguments in call to watch.NewStreamWatcher
-
-have (*versioned.Decoder)
-
-want (watch.Decoder, watch.Reporter)
-</code></pre>
-<h3 id="解决方法">解决方法</h3>
-<p>可以尝试手动替换k8s.io/apimachinery@v0.17.0为k8s.io/apimachinery@release-1.14来解决。在终端执行# go mod download -json k8s.io/apimachinery@release-1.14最终gomod的关于k8s的所有依赖文件如下所示：</p>
-<pre><code>1 require (
-2 　　k8s.io/api v0.17.0 // indirect
-3 　　k8s.io/apimachinery v0.17.0
-4 　　k8s.io/client-go v11.0.0+incompatible
-5 　　k8s.io/utils v0.0.0-20191114184206-e782cd3c129f // indirect
-6 　　sigs.k8s.io/yaml v1.1.0 // indirect
-7 )
-8
-9 replace (
-10     k8s.io/api =&gt; k8s.io/api v0.0.0-20191004102349-159aefb8556b
-11     k8s.io/apiextensions-apiserver =&gt; k8s.io/apiextensions-apiserver v0.0.0-20191004105649-b14e3c49469a
-12     k8s.io/apimachinery =&gt; k8s.io/apimachinery v0.0.0-20191004074956-c5d2f014d689
-13     sigs.k8s.io/controller-runtime =&gt; sigs.k8s.io/controller-runtime v0.3.0
-14 )
-</code></pre>
+              <p>在k8s集群内部署了一个tomcat服务，配置nodeport供外部访问。页面报错找不到config.js</p>
+<p><img src="https://pudongli.github.io/post-images/1597212531069.png" alt="" loading="lazy"><br>
+进入tomcat容器后，在ROOT/config目录下可以找到config这个文件，权限是777。进一步ls -la发现config.js是一个软链接，指向的是..data/config.js，..data是一个带有时间戳的目录的软链接，这个目录下存放的是真实文件。<br>
+为什么tomcat读不到config.js呢，原因是tomcat需要在配置文件中配置allowLinking=true才可以使用软链接，默认是不支持的。<br>
+当容器第一次启动前，kubelet先将configmap中的内容下载到Pod对应的volume目录下，比如/var/lib/kubelet/pods/{POD UID}/volumes/kubernetes.io~configmap/extra-cfg。为了保证对此volume下内容的更新是原子操作（更新目录时），所以会通过软链接的方式进行更新。<br>
+参考：https://blog.fatedier.com/2020/04/17/pod-loopcrash-of-k8s-subpath/</p>
 
             </div>
             
-              <div class="tag-container">
-                
-                  <a href="https://pudongli.github.io/DugFvuI3W/" class="tag">
-                    go
-                  </a>
-                
-              </div>
             
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://pudongli.github.io/72UPyoiW/">
+                  <h3 class="post-title">
+                    关于client-go报错
+                  </h3>
+                </a>
+              </div>
             
 
             

@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://pudongli.github.io</id>
     <title>strider</title>
-    <updated>2020-08-12T06:02:24.214Z</updated>
+    <updated>2020-08-12T06:16:42.473Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://pudongli.github.io"/>
     <link rel="self" href="https://pudongli.github.io/atom.xml"/>
@@ -10,6 +10,20 @@
     <logo>https://pudongli.github.io/images/avatar.png</logo>
     <icon>https://pudongli.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, strider</rights>
+    <entry>
+        <title type="html"><![CDATA[记录一次k8s下部署的tomcat服务报错]]></title>
+        <id>https://pudongli.github.io/w0dyewgIS/</id>
+        <link href="https://pudongli.github.io/w0dyewgIS/">
+        </link>
+        <updated>2020-08-12T06:08:06.000Z</updated>
+        <content type="html"><![CDATA[<p>在k8s集群内部署了一个tomcat服务，配置nodeport供外部访问。页面报错找不到config.js</p>
+<p><img src="https://pudongli.github.io/post-images/1597212531069.png" alt="" loading="lazy"><br>
+进入tomcat容器后，在ROOT/config目录下可以找到config这个文件，权限是777。进一步ls -la发现config.js是一个软链接，指向的是..data/config.js，..data是一个带有时间戳的目录的软链接，这个目录下存放的是真实文件。<br>
+为什么tomcat读不到config.js呢，原因是tomcat需要在配置文件中配置allowLinking=true才可以使用软链接，默认是不支持的。<br>
+当容器第一次启动前，kubelet先将configmap中的内容下载到Pod对应的volume目录下，比如/var/lib/kubelet/pods/{POD UID}/volumes/kubernetes.io~configmap/extra-cfg。为了保证对此volume下内容的更新是原子操作（更新目录时），所以会通过软链接的方式进行更新。<br>
+参考：https://blog.fatedier.com/2020/04/17/pod-loopcrash-of-k8s-subpath/</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[关于client-go报错]]></title>
         <id>https://pudongli.github.io/72UPyoiW/</id>
