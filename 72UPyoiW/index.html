@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" >
 
-<title>关于 | strider</title>
+<title>关于client-go报错 | strider</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
@@ -24,9 +24,11 @@
 
 
 
-    <meta name="description" content="记录docker/go/k8s/openshift/linux等杂七杂八的内容。🦈
-" />
-    <meta name="keywords" content="" />
+    <meta name="description" content="go get client-go时报错
+k8s.io/client-go/rest
+
+../../../../goworkspace/pkg/mod/k8s.io/client-go@v11.0.0+incompatible/rest/re..." />
+    <meta name="keywords" content="go" />
   </head>
   <body>
     <div id="app" class="main">
@@ -85,13 +87,46 @@
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">关于</h2>
-            <div class="post-date">2019-01-25</div>
+            <h2 class="post-title">关于client-go报错</h2>
+            <div class="post-date">2020-08-12</div>
             
             <div class="post-content" v-pre>
-              <p>记录docker/go/k8s/openshift/linux等杂七杂八的内容。🦈</p>
+              <h3 id="go-get-client-go时报错">go get client-go时报错</h3>
+<pre><code>k8s.io/client-go/rest
+
+../../../../goworkspace/pkg/mod/k8s.io/client-go@v11.0.0+incompatible/rest/request.go:598:31: not enough arguments in call to watch.NewStreamWatcher
+
+have (*versioned.Decoder)
+
+want (watch.Decoder, watch.Reporter)
+</code></pre>
+<h3 id="解决方法">解决方法</h3>
+<p>可以尝试手动替换k8s.io/apimachinery@v0.17.0为k8s.io/apimachinery@release-1.14来解决。在终端执行# go mod download -json k8s.io/apimachinery@release-1.14最终gomod的关于k8s的所有依赖文件如下所示：</p>
+<pre><code>1 require (
+2 　　k8s.io/api v0.17.0 // indirect
+3 　　k8s.io/apimachinery v0.17.0
+4 　　k8s.io/client-go v11.0.0+incompatible
+5 　　k8s.io/utils v0.0.0-20191114184206-e782cd3c129f // indirect
+6 　　sigs.k8s.io/yaml v1.1.0 // indirect
+7 ）
+8
+9 replace (
+10     k8s.io/api =&gt; k8s.io/api v0.0.0-20191004102349-159aefb8556b
+11     k8s.io/apiextensions-apiserver =&gt; k8s.io/apiextensions-apiserver v0.0.0-20191004105649-b14e3c49469a
+12     k8s.io/apimachinery =&gt; k8s.io/apimachinery v0.0.0-20191004074956-c5d2f014d689
+13     sigs.k8s.io/controller-runtime =&gt; sigs.k8s.io/controller-runtime v0.3.0
+14 )
+</code></pre>
 
             </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://pudongli.github.io/DugFvuI3W/" class="tag">
+                    go
+                  </a>
+                
+              </div>
             
             
 
