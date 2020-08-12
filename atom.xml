@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://pudongli.github.io</id>
     <title>Gridea</title>
-    <updated>2020-08-12T05:30:51.976Z</updated>
+    <updated>2020-08-12T05:40:16.910Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://pudongli.github.io"/>
     <link rel="self" href="https://pudongli.github.io/atom.xml"/>
@@ -10,4 +10,38 @@
     <logo>https://pudongli.github.io/images/avatar.png</logo>
     <icon>https://pudongli.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Gridea</rights>
+    <entry>
+        <title type="html"><![CDATA[关于client-go报错]]></title>
+        <id>https://pudongli.github.io/post/guan-yu-client-go-bao-cuo/</id>
+        <link href="https://pudongli.github.io/post/guan-yu-client-go-bao-cuo/">
+        </link>
+        <updated>2020-08-12T05:35:31.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="go-get-client-go时报错">go get client-go时报错</h3>
+<pre><code>k8s.io/client-go/rest
+
+../../../../goworkspace/pkg/mod/k8s.io/client-go@v11.0.0+incompatible/rest/request.go:598:31: not enough arguments in call to watch.NewStreamWatcher
+
+have (*versioned.Decoder)
+
+want (watch.Decoder, watch.Reporter)
+</code></pre>
+<h3 id="解决方法">解决方法</h3>
+<p>可以尝试手动替换k8s.io/apimachinery@v0.17.0为k8s.io/apimachinery@release-1.14来解决。在终端执行# go mod download -json k8s.io/apimachinery@release-1.14最终gomod的关于k8s的所有依赖文件如下所示：</p>
+<pre><code>1 require (
+2 　　k8s.io/api v0.17.0 // indirect
+3 　　k8s.io/apimachinery v0.17.0
+4 　　k8s.io/client-go v11.0.0+incompatible
+5 　　k8s.io/utils v0.0.0-20191114184206-e782cd3c129f // indirect
+6 　　sigs.k8s.io/yaml v1.1.0 // indirect
+7 ）
+8
+9 replace (
+10     k8s.io/api =&gt; k8s.io/api v0.0.0-20191004102349-159aefb8556b
+11     k8s.io/apiextensions-apiserver =&gt; k8s.io/apiextensions-apiserver v0.0.0-20191004105649-b14e3c49469a
+12     k8s.io/apimachinery =&gt; k8s.io/apimachinery v0.0.0-20191004074956-c5d2f014d689
+13     sigs.k8s.io/controller-runtime =&gt; sigs.k8s.io/controller-runtime v0.3.0
+14 )
+</code></pre>
+]]></content>
+    </entry>
 </feed>
