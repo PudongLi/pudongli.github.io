@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" >
 
-<title>关于client-go报错 | strider</title>
+<title>关于golang中slice扩容 | strider</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
@@ -24,10 +24,8 @@
 
 
 
-    <meta name="description" content="go get client-go时报错
-k8s.io/client-go/rest
-
-../../../../goworkspace/pkg/mod/k8s.io/client-go@v11.0.0+incompatible/rest/re..." />
+    <meta name="description" content="slice扩容是在slice使用过程中经常使用到的场景，扩容发生在append的时候，当slice的cap不足以容纳新的元素时，就会进行growSlice。当前场景下go版本为1.14.2
+slice的扩容分为常规场景和非常规场景，先看一下..." />
     <meta name="keywords" content="go" />
   </head>
   <body>
@@ -87,36 +85,72 @@ k8s.io/client-go/rest
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">关于client-go报错</h2>
+            <h2 class="post-title">关于golang中slice扩容</h2>
             <div class="post-date">2020-08-12</div>
             
             <div class="post-content" v-pre>
-              <h3 id="go-get-client-go时报错">go get client-go时报错</h3>
-<pre><code>k8s.io/client-go/rest
+              <p>slice扩容是在slice使用过程中经常使用到的场景，扩容发生在append的时候，当slice的cap不足以容纳新的元素时，就会进行growSlice。当前场景下go版本为1.14.2<br>
+slice的扩容分为常规场景和非常规场景，先看一下常规场景下：</p>
+<pre><code>slice1 := make([]int,1,)
+fmt.Println(&quot;cap of slice1&quot;,cap(slice1))
+slice1 = append(slice1,1)
+fmt.Println(&quot;cap of slice1&quot;,cap(slice1))
+slice1 = append(slice1,2)
+fmt.Println(&quot;cap of slice1&quot;,cap(slice1))
 
-../../../../goworkspace/pkg/mod/k8s.io/client-go@v11.0.0+incompatible/rest/request.go:598:31: not enough arguments in call to watch.NewStreamWatcher
+fmt.Println()
 
-have (*versioned.Decoder)
+slice1024 := make([]int,1024)
+fmt.Println(&quot;cap of slice1024&quot;,cap(slice1024))
+slice1024 = append(slice1024,1)
+fmt.Println(&quot;cap of slice1024&quot;,cap(slice1024))
+slice1024 = append(slice1024,2)
+fmt.Println(&quot;cap of slice1024&quot;,cap(slice1024))
 
-want (watch.Decoder, watch.Reporter)
+
+输出：
+cap of slice1 1
+cap of slice1 2
+cap of slice1 4
+
+cap of slice1024 1024
+cap of slice1024 1280
+cap of slice1024 1280
 </code></pre>
-<h3 id="解决方法">解决方法</h3>
-<p>可以尝试手动替换k8s.io/apimachinery@v0.17.0为k8s.io/apimachinery@release-1.14来解决。在终端执行# go mod download -json k8s.io/apimachinery@release-1.14最终gomod的关于k8s的所有依赖文件如下所示：</p>
-<pre><code>1 require (
-2 　　k8s.io/api v0.17.0 // indirect
-3 　　k8s.io/apimachinery v0.17.0
-4 　　k8s.io/client-go v11.0.0+incompatible
-5 　　k8s.io/utils v0.0.0-20191114184206-e782cd3c129f // indirect
-6 　　sigs.k8s.io/yaml v1.1.0 // indirect
-7 )
+<p>然后看一下非常规场景：</p>
+<pre><code>a := []byte{1, 0}
+a = append(a, 1)
+fmt.Println(&quot;cap of a is &quot;, cap(a))
+
+b := []int{1, 1}
+b = append(b, 4, 5, 6)
+fmt.Println(&quot;cap of b is &quot;, cap(b))
+
+c := []int32{1, 1}
+c = append(c, 2, 5, 6)
+fmt.Println(&quot;cap of c is &quot;, cap(c))
+
+输出
 8
-9 replace (
-10     k8s.io/api =&gt; k8s.io/api v0.0.0-20191004102349-159aefb8556b
-11     k8s.io/apiextensions-apiserver =&gt; k8s.io/apiextensions-apiserver v0.0.0-20191004105649-b14e3c49469a
-12     k8s.io/apimachinery =&gt; k8s.io/apimachinery v0.0.0-20191004074956-c5d2f014d689
-13     sigs.k8s.io/controller-runtime =&gt; sigs.k8s.io/controller-runtime v0.3.0
-14 )
+6
+8
 </code></pre>
+<p>下面说一下slice扩容的步骤，并解答非常规场景下的输出。<br>
+slice的扩容主要分为3步<br>
+1、计算预计大小<br>
+如果预估扩容后的slice的容量大于oldCap的2倍，则预估容量为扩容后的大小<br>
+如果预估扩容后的slice的容量小于oldCap的2倍<br>
+a:如果oldCap小于1024，则预估容量为oldCap<em>2<br>
+b:如果oldCap大于1024，则预估容量为oldCap</em>1.25<br>
+2、预估内存大小<br>
+计算扩容后需要占用的内存大小：在64位机器下byte为1字节，int为8字节，int32为4字节，非常规场景下的b的预估内存为5*8=40<br>
+3、计算最终容量大小<br>
+进行内存对齐<br>
+<code>capmem = roundupsize(uintptr(newcap) * sys.PtrSize)</code> roundupsize向上取整<br>
+<a href="https://golang.org/src/runtime/sizeclasses.go">https://golang.org/src/runtime/sizeclasses.go</a><br>
+<img src="https://pudongli.github.io/post-images/1597213503857.png" alt="" loading="lazy"><br>
+sizeclass中定义了对象大小，最小8b，最大为32K<br>
+b的预估大小为40，这里没有40的类型，于是选择大于40字节，并最接近大小的48字节。48/8=6，所以b扩容后的cap为6</p>
 
             </div>
             
@@ -128,6 +162,15 @@ want (watch.Decoder, watch.Reporter)
                 
               </div>
             
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://pudongli.github.io/w0dyewgIS/">
+                  <h3 class="post-title">
+                    记录一次k8s下部署的tomcat服务报错
+                  </h3>
+                </a>
+              </div>
             
 
             

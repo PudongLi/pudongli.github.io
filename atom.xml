@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://pudongli.github.io</id>
     <title>strider</title>
-    <updated>2020-08-12T06:16:42.473Z</updated>
+    <updated>2020-08-12T06:25:23.694Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://pudongli.github.io"/>
     <link rel="self" href="https://pudongli.github.io/atom.xml"/>
@@ -11,17 +11,87 @@
     <icon>https://pudongli.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, strider</rights>
     <entry>
+        <title type="html"><![CDATA[关于golang中slice扩容]]></title>
+        <id>https://pudongli.github.io/-lmXlat1b/</id>
+        <link href="https://pudongli.github.io/-lmXlat1b/">
+        </link>
+        <updated>2020-08-12T06:21:40.000Z</updated>
+        <content type="html"><![CDATA[<p>slice扩容是在slice使用过程中经常使用到的场景，扩容发生在append的时候，当slice的cap不足以容纳新的元素时，就会进行growSlice。当前场景下go版本为1.14.2<br>
+slice的扩容分为常规场景和非常规场景，先看一下常规场景下：</p>
+<pre><code>slice1 := make([]int,1,)
+fmt.Println(&quot;cap of slice1&quot;,cap(slice1))
+slice1 = append(slice1,1)
+fmt.Println(&quot;cap of slice1&quot;,cap(slice1))
+slice1 = append(slice1,2)
+fmt.Println(&quot;cap of slice1&quot;,cap(slice1))
+
+fmt.Println()
+
+slice1024 := make([]int,1024)
+fmt.Println(&quot;cap of slice1024&quot;,cap(slice1024))
+slice1024 = append(slice1024,1)
+fmt.Println(&quot;cap of slice1024&quot;,cap(slice1024))
+slice1024 = append(slice1024,2)
+fmt.Println(&quot;cap of slice1024&quot;,cap(slice1024))
+
+
+输出：
+cap of slice1 1
+cap of slice1 2
+cap of slice1 4
+
+cap of slice1024 1024
+cap of slice1024 1280
+cap of slice1024 1280
+</code></pre>
+<p>然后看一下非常规场景：</p>
+<pre><code>a := []byte{1, 0}
+a = append(a, 1)
+fmt.Println(&quot;cap of a is &quot;, cap(a))
+
+b := []int{1, 1}
+b = append(b, 4, 5, 6)
+fmt.Println(&quot;cap of b is &quot;, cap(b))
+
+c := []int32{1, 1}
+c = append(c, 2, 5, 6)
+fmt.Println(&quot;cap of c is &quot;, cap(c))
+
+输出
+8
+6
+8
+</code></pre>
+<p>下面说一下slice扩容的步骤，并解答非常规场景下的输出。<br>
+slice的扩容主要分为3步<br>
+1、计算预计大小<br>
+如果预估扩容后的slice的容量大于oldCap的2倍，则预估容量为扩容后的大小<br>
+如果预估扩容后的slice的容量小于oldCap的2倍<br>
+a:如果oldCap小于1024，则预估容量为oldCap<em>2<br>
+b:如果oldCap大于1024，则预估容量为oldCap</em>1.25<br>
+2、预估内存大小<br>
+计算扩容后需要占用的内存大小：在64位机器下byte为1字节，int为8字节，int32为4字节，非常规场景下的b的预估内存为5*8=40<br>
+3、计算最终容量大小<br>
+进行内存对齐<br>
+<code>capmem = roundupsize(uintptr(newcap) * sys.PtrSize)</code> roundupsize向上取整<br>
+<a href="https://golang.org/src/runtime/sizeclasses.go">https://golang.org/src/runtime/sizeclasses.go</a><br>
+<img src="https://pudongli.github.io/post-images/1597213503857.png" alt="" loading="lazy"><br>
+sizeclass中定义了对象大小，最小8b，最大为32K<br>
+b的预估大小为40，这里没有40的类型，于是选择大于40字节，并最接近大小的48字节。48/8=6，所以b扩容后的cap为6</p>
+]]></content>
+    </entry>
+    <entry>
         <title type="html"><![CDATA[记录一次k8s下部署的tomcat服务报错]]></title>
         <id>https://pudongli.github.io/w0dyewgIS/</id>
         <link href="https://pudongli.github.io/w0dyewgIS/">
         </link>
         <updated>2020-08-12T06:08:06.000Z</updated>
-        <content type="html"><![CDATA[<p>在k8s集群内部署了一个tomcat服务，配置nodeport供外部访问。页面报错找不到config.js</p>
-<p><img src="https://pudongli.github.io/post-images/1597212531069.png" alt="" loading="lazy"><br>
-进入tomcat容器后，在ROOT/config目录下可以找到config这个文件，权限是777。进一步ls -la发现config.js是一个软链接，指向的是..data/config.js，..data是一个带有时间戳的目录的软链接，这个目录下存放的是真实文件。<br>
-为什么tomcat读不到config.js呢，原因是tomcat需要在配置文件中配置allowLinking=true才可以使用软链接，默认是不支持的。<br>
-当容器第一次启动前，kubelet先将configmap中的内容下载到Pod对应的volume目录下，比如/var/lib/kubelet/pods/{POD UID}/volumes/kubernetes.io~configmap/extra-cfg。为了保证对此volume下内容的更新是原子操作（更新目录时），所以会通过软链接的方式进行更新。<br>
-参考：https://blog.fatedier.com/2020/04/17/pod-loopcrash-of-k8s-subpath/</p>
+        <content type="html"><![CDATA[<h4 id="在k8s集群内部署了一个tomcat服务配置nodeport供外部访问-页面报错找不到configjs">在k8s集群内部署了一个tomcat服务，配置nodeport供外部访问。页面报错找不到config.js</h4>
+<figure data-type="image" tabindex="1"><img src="https://pudongli.github.io/post-images/1597212531069.png" alt="" loading="lazy"></figure>
+<h4 id="进入tomcat容器后在rootconfig目录下可以找到config这个文件权限是777-进一步ls-la发现configjs是一个软链接指向的是dataconfigjsdata是一个带有时间戳的目录的软链接这个目录下存放的是真实文件">进入tomcat容器后，在ROOT/config目录下可以找到config这个文件，权限是777。进一步ls -la发现config.js是一个软链接，指向的是..data/config.js，..data是一个带有时间戳的目录的软链接，这个目录下存放的是真实文件。</h4>
+<h4 id="为什么tomcat读不到configjs呢原因是tomcat需要在配置文件中配置allowlinkingtrue才可以使用软链接默认是不支持的">为什么tomcat读不到config.js呢，原因是tomcat需要在配置文件中配置allowLinking=true才可以使用软链接，默认是不支持的。</h4>
+<h4 id="当容器第一次启动前kubelet先将configmap中的内容下载到pod对应的volume目录下比如varlibkubeletpodspod-uidvolumeskubernetesio~configmapextra-cfg-为了保证对此volume下内容的更新是原子操作更新目录时所以会通过软链接的方式进行更新">当容器第一次启动前，kubelet先将configmap中的内容下载到Pod对应的volume目录下，比如/var/lib/kubelet/pods/{POD UID}/volumes/kubernetes.io~configmap/extra-cfg。为了保证对此volume下内容的更新是原子操作（更新目录时），所以会通过软链接的方式进行更新。</h4>
+<p>参考：<a href="https://blog.fatedier.com/2020/04/17/pod-loopcrash-of-k8s-subpath/">https://blog.fatedier.com/2020/04/17/pod-loopcrash-of-k8s-subpath/</a></p>
 ]]></content>
     </entry>
     <entry>
