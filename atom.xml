@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://pudongli.github.io</id>
     <title>strider</title>
-    <updated>2020-08-12T06:53:35.013Z</updated>
+    <updated>2020-08-12T07:05:39.403Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://pudongli.github.io"/>
     <link rel="self" href="https://pudongli.github.io/atom.xml"/>
@@ -10,36 +10,6 @@
     <logo>https://pudongli.github.io/images/avatar.png</logo>
     <icon>https://pudongli.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, strider</rights>
-    <entry>
-        <title type="html"><![CDATA[golang select的四种情况]]></title>
-        <id>https://pudongli.github.io/G3YFmA8ZP/</id>
-        <link href="https://pudongli.github.io/G3YFmA8ZP/">
-        </link>
-        <updated>2020-08-12T06:52:41.000Z</updated>
-        <content type="html"><![CDATA[<h3 id="select不存在任何case">select不存在任何case</h3>
-<pre><code>空的select语句会被转换为runtime.block函数调用，阻塞当前的goroutine，导致goroutine进入无法被唤醒的永久休眠状态。
-</code></pre>
-<h3 id="select存在一个case">select存在一个case</h3>
-<pre><code>如果当前select语句中只包含一个case，那么就会把select语句改写成if语句
-	改写前
-	select{
-		case v, ok &lt;- ch:
-		...
-	}
-	改写后
-	if ch == nil{
-	block()
-	}
-	v, ok := &lt;- ch
-	...
-如果case中的channel是空指针，就会直接挂起当前goroutine并永久休眠
-</code></pre>
-<h3 id="select存在两个case其中一个case是default">select存在两个case，其中一个case是default</h3>
-<pre><code>会非阻塞地执行收发操作
-</code></pre>
-<h3 id="select存在多个case">select存在多个case</h3>
-]]></content>
-    </entry>
     <entry>
         <title type="html"><![CDATA[golang垃圾收集器]]></title>
         <id>https://pudongli.github.io/erKeo3HJm/</id>
