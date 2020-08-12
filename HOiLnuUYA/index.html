@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" >
 
-<title>关于 | strider</title>
+<title>golang内置的print/println函数和fmt、log标准库包中的打印函数有什么区别 | strider</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
@@ -24,9 +24,9 @@
 
 
 
-    <meta name="description" content="记录docker/go/k8s/openshift/linux等杂七杂八的内容。🦈
-" />
-    <meta name="keywords" content="" />
+    <meta name="description" content="1.内置的print/println函数总是写入到标准错误(os.Stderr)。fmt标准包里的打印函数总是写入到标准输出(os.Stdout)。log里的打印函数默认写入标准错误，可以通过log.SetOutput函数来设置。
+2.pr..." />
+    <meta name="keywords" content="go" />
   </head>
   <body>
     <div id="app" class="main">
@@ -85,14 +85,35 @@
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">关于</h2>
-            <div class="post-date">2019-01-25</div>
+            <h2 class="post-title">golang内置的print/println函数和fmt、log标准库包中的打印函数有什么区别</h2>
+            <div class="post-date">2020-08-12</div>
             
             <div class="post-content" v-pre>
-              <p>记录docker/go/k8s/openshift/linux等杂七杂八的内容。🦈</p>
+              <p>1.内置的print/println函数总是写入到标准错误(os.Stderr)。fmt标准包里的打印函数总是写入到标准输出(os.Stdout)。log里的打印函数默认写入标准错误，可以通过log.SetOutput函数来设置。<br>
+2.print/println函数的调用不能接受数组和结构体参数。<br>
+3.对于组合类型的参数，内置的print/println函数将输出参数的底层值部的地址，而fmt和log将输出参数的字面值。<br>
+4.在Go1.14版本对于标准编译器，调用print/println函数不会使调用参数引用的指针的值逃逸到堆上，而fmt和log标准库中打印函数将使调用参数引用的值逃逸到堆上。<br>
+5.如果一个实参有String() string或Error() string方法，那么fmt和log标准库包里的打印函数在打印参数时会调用这两个方法，而内置的print/println函数则会忽略参数的这些方法。</p>
 
             </div>
             
+              <div class="tag-container">
+                
+                  <a href="https://pudongli.github.io/DugFvuI3W/" class="tag">
+                    go
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://pudongli.github.io/-lmXlat1b/">
+                  <h3 class="post-title">
+                    golang中slice扩容
+                  </h3>
+                </a>
+              </div>
             
 
             

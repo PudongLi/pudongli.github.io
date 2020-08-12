@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://pudongli.github.io</id>
     <title>strider</title>
-    <updated>2020-08-12T06:27:22.156Z</updated>
+    <updated>2020-08-12T06:53:35.013Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://pudongli.github.io"/>
     <link rel="self" href="https://pudongli.github.io/atom.xml"/>
@@ -11,7 +11,133 @@
     <icon>https://pudongli.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, strider</rights>
     <entry>
-        <title type="html"><![CDATA[关于golang中slice扩容]]></title>
+        <title type="html"><![CDATA[golang select的四种情况]]></title>
+        <id>https://pudongli.github.io/G3YFmA8ZP/</id>
+        <link href="https://pudongli.github.io/G3YFmA8ZP/">
+        </link>
+        <updated>2020-08-12T06:52:41.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="select不存在任何case">select不存在任何case</h3>
+<pre><code>空的select语句会被转换为runtime.block函数调用，阻塞当前的goroutine，导致goroutine进入无法被唤醒的永久休眠状态。
+</code></pre>
+<h3 id="select存在一个case">select存在一个case</h3>
+<pre><code>如果当前select语句中只包含一个case，那么就会把select语句改写成if语句
+	改写前
+	select{
+		case v, ok &lt;- ch:
+		...
+	}
+	改写后
+	if ch == nil{
+	block()
+	}
+	v, ok := &lt;- ch
+	...
+如果case中的channel是空指针，就会直接挂起当前goroutine并永久休眠
+</code></pre>
+<h3 id="select存在两个case其中一个case是default">select存在两个case，其中一个case是default</h3>
+<pre><code>会非阻塞地执行收发操作
+</code></pre>
+<h3 id="select存在多个case">select存在多个case</h3>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[golang垃圾收集器]]></title>
+        <id>https://pudongli.github.io/erKeo3HJm/</id>
+        <link href="https://pudongli.github.io/erKeo3HJm/">
+        </link>
+        <updated>2020-08-12T06:46:42.000Z</updated>
+        <content type="html"><![CDATA[<p>本文是读draveness大佬的文章后的摘要，原文地址 <a href="https://draveness.me/golang/docs/part3-runtime/ch07-memory/golang-garbage-collector/">https://draveness.me/golang/docs/part3-runtime/ch07-memory/golang-garbage-collector/</a></p>
+<h1 id="go垃圾收集器">GO垃圾收集器</h1>
+<h2 id="设计原理">设计原理</h2>
+<h3 id="内存管理的组件">内存管理的组件</h3>
+<pre><code>用户程序Mutator通过内存分配器Allocator在堆上申请内存，而垃圾收集器Collector负责回收堆上的内存空间，内存分配器和垃圾收集器共同管理程序中的堆内存空间
+</code></pre>
+<h4 id="标记清除">标记清除</h4>
+<pre><code>标记清除Mark-Sweep算法是最常见的垃圾收集算法。标记清除收集器是跟踪式垃圾收集器，其执行过程可分成Mark和Sweep两个阶段：
+	1、标记阶段：从根对象出发查找并标记堆中所有存活的对象；
+	2、清除阶段：遍历堆中所有的对象，回收未被标记的垃圾对象并将回收的内存加入到空闲链表中
+</code></pre>
+<p><img src="https://pudongli.github.io/post-images/1597215066449.png" alt="" loading="lazy"><br>
+<strong>标记清除的标记阶段</strong><br>
+<img src="https://pudongli.github.io/post-images/1597215073028.png" alt="" loading="lazy"><br>
+<strong>标记清除的清除阶段</strong></p>
+<pre><code>使用标记清除算法，垃圾收集器需要从垃圾收集的根节点出发，递归遍历这个对象指向的子节点并将所有可达的对象标记为存活；标记结束后，垃圾收集器会依次遍历堆中的对象并清除其中的垃圾。
+缺点：
+* 需要STW
+* 标记需要扫描整个heap
+* 清楚数据会产生heap碎片
+</code></pre>
+<h4 id="三色抽象">三色抽象</h4>
+<pre><code>为了解决标记清除算法带来的长时间STW，多数现代追踪式垃圾收集器都会实现三色标记算法的变种以缩短STW的时间。三色标记算法将程序中的对象分为白色、灰色、黑色三类
+* 白色对象-潜在的垃圾，其内存可能会被垃圾收集器回收；
+* 黑色对象-活跃的对象，包括不存在任何外部引用指针的对象已经从根可达的对象；
+* 灰色对象-活跃的对象，因为存在指向白色对象的外部指针，垃圾收集器会扫描这些对象的子对象；
+</code></pre>
+<h4 id="屏障技术">屏障技术</h4>
+<pre><code>  * 强三色不变性-黑色对象不会指向白色对象，只会指向灰色对象或者黑色对象；
+  * 弱三色不变性-黑色对象指向的白色对象必须包含一条从灰色对象经由多个白色对象的可达路径；
+</code></pre>
+<h5 id="插入写屏障">插入写屏障</h5>
+<pre><code>在A对象引用B对象的时候，B对象被标记为灰色。满足强三色不变性
+</code></pre>
+<pre><code>添加下游对象(当前下游对象slot, 新下游对象ptr) {
+    //1
+    标记灰色(新下游对象ptr)
+    //2 
+    当前下游对象slot = 新下游对象ptr
+}
+</code></pre>
+<pre><code>插入写屏障机制在栈空间的对象操作中不使用，而仅仅作用于堆空间对象的操作中。
+在堆空间扫描结束以后要对栈重新进行三色标记扫描。需要STW，直到栈空间标记结束。
+</code></pre>
+<h5 id="删除写屏障">删除写屏障</h5>
+<pre><code>被删除的对象如果自身是白色或者灰色，那么被标记为灰色。满足弱三色不变性
+</code></pre>
+<pre><code>添加下游对象(当前下游对象slot， 新下游对象ptr) {
+    //1
+    if (当前下游对象slot是灰色 || 当前下游对象slot是白色) {
+        标记灰色(当前下游对象slot) //slot为被删除对象， 标记为灰色
+    }
+    //2 
+    当前下游对象slot = 新下游对象ptr
+}
+</code></pre>
+<pre><code>删除写屏障回收精度低，一个对象即使被删除了最后一个指向它的指针，也仍然可以活过这一轮，在下一轮gc中被清理掉。
+</code></pre>
+<h5 id="混合写屏障">混合写屏障</h5>
+<pre><code>实现步骤
+1、gc开始时将栈上的对象全部扫描并标记为黑色，（之后不再进行第二次扫描，无需STW）
+2、GC期间，任何堆上创建的新对象均标记为黑色；
+3、被删除的对象标记为灰色；
+4、被添加的对象标记为灰色；
+</code></pre>
+<pre><code>
+添加下游对象(当前下游对象slot, 新下游对象ptr) {
+    //1
+    标记灰色(当前下游对象slot) //只要当前下游对象被移走，就标记灰色
+    //2
+    标记灰色(新下游对象ptr)
+    //3 
+    当前下游对象slot = 新下游对象ptr
+}
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[golang内置的print/println函数和fmt、log标准库包中的打印函数有什么区别]]></title>
+        <id>https://pudongli.github.io/HOiLnuUYA/</id>
+        <link href="https://pudongli.github.io/HOiLnuUYA/">
+        </link>
+        <updated>2020-08-12T06:45:28.000Z</updated>
+        <content type="html"><![CDATA[<p>1.内置的print/println函数总是写入到标准错误(os.Stderr)。fmt标准包里的打印函数总是写入到标准输出(os.Stdout)。log里的打印函数默认写入标准错误，可以通过log.SetOutput函数来设置。<br>
+2.print/println函数的调用不能接受数组和结构体参数。<br>
+3.对于组合类型的参数，内置的print/println函数将输出参数的底层值部的地址，而fmt和log将输出参数的字面值。<br>
+4.在Go1.14版本对于标准编译器，调用print/println函数不会使调用参数引用的指针的值逃逸到堆上，而fmt和log标准库中打印函数将使调用参数引用的值逃逸到堆上。<br>
+5.如果一个实参有String() string或Error() string方法，那么fmt和log标准库包里的打印函数在打印参数时会调用这两个方法，而内置的print/println函数则会忽略参数的这些方法。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[golang中slice扩容]]></title>
         <id>https://pudongli.github.io/-lmXlat1b/</id>
         <link href="https://pudongli.github.io/-lmXlat1b/">
         </link>

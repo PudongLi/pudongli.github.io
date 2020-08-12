@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" >
 
-<title>关于 | strider</title>
+<title>golang select的四种情况 | strider</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
@@ -24,9 +24,12 @@
 
 
 
-    <meta name="description" content="记录docker/go/k8s/openshift/linux等杂七杂八的内容。🦈
-" />
-    <meta name="keywords" content="" />
+    <meta name="description" content="select不存在任何case
+空的select语句会被转换为runtime.block函数调用，阻塞当前的goroutine，导致goroutine进入无法被唤醒的永久休眠状态。
+
+select存在一个case
+如果当前select语句中..." />
+    <meta name="keywords" content="go" />
   </head>
   <body>
     <div id="app" class="main">
@@ -85,14 +88,52 @@
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">关于</h2>
-            <div class="post-date">2019-01-25</div>
+            <h2 class="post-title">golang select的四种情况</h2>
+            <div class="post-date">2020-08-12</div>
             
             <div class="post-content" v-pre>
-              <p>记录docker/go/k8s/openshift/linux等杂七杂八的内容。🦈</p>
+              <h3 id="select不存在任何case">select不存在任何case</h3>
+<pre><code>空的select语句会被转换为runtime.block函数调用，阻塞当前的goroutine，导致goroutine进入无法被唤醒的永久休眠状态。
+</code></pre>
+<h3 id="select存在一个case">select存在一个case</h3>
+<pre><code>如果当前select语句中只包含一个case，那么就会把select语句改写成if语句
+	改写前
+	select{
+		case v, ok &lt;- ch:
+		...
+	}
+	改写后
+	if ch == nil{
+	block()
+	}
+	v, ok := &lt;- ch
+	...
+如果case中的channel是空指针，就会直接挂起当前goroutine并永久休眠
+</code></pre>
+<h3 id="select存在两个case其中一个case是default">select存在两个case，其中一个case是default</h3>
+<pre><code>会非阻塞地执行收发操作
+</code></pre>
+<h3 id="select存在多个case">select存在多个case</h3>
 
             </div>
             
+              <div class="tag-container">
+                
+                  <a href="https://pudongli.github.io/DugFvuI3W/" class="tag">
+                    go
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://pudongli.github.io/erKeo3HJm/">
+                  <h3 class="post-title">
+                    golang垃圾收集器
+                  </h3>
+                </a>
+              </div>
             
 
             
