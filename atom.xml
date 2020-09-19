@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://pudongli.github.io</id>
     <title>strider</title>
-    <updated>2020-09-19T05:35:14.918Z</updated>
+    <updated>2020-09-19T05:36:50.844Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://pudongli.github.io"/>
     <link rel="self" href="https://pudongli.github.io/atom.xml"/>
@@ -40,18 +40,6 @@ want (watch.Decoder, watch.Reporter)
 13     sigs.k8s.io/controller-runtime =&gt; sigs.k8s.io/controller-runtime v0.3.0
 14 )
 </code></pre>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[关于]]></title>
-        <id>https://pudongli.github.io/b_PTsm9mm/</id>
-        <link href="https://pudongli.github.io/b_PTsm9mm/">
-        </link>
-        <updated>2020-09-19T05:23:23.000Z</updated>
-        <content type="html"><![CDATA[<p>记录docker/go/k8s/openshift/linux等杂七杂八的内容。<br>
-文章中的图大多用drawio绘制。<br>
-wechat：Q09VUkdFUi00Nw==<br>
-🦈</p>
 ]]></content>
     </entry>
     <entry>
